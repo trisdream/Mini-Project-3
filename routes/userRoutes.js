@@ -1,8 +1,19 @@
 const express = require("express");
-const { getUserBirthChart } = require("../controllers/userController");
+const {
+  createUser,
+  getUserById,
+  getAllUsers,
+  updateUser,
+} = require("../controllers/userController");
 
 const router = express.Router();
 
-router.get("/:userId/birthchart", getUserBirthChart);
+router.post("/user", createUser);
+
+router.get("/user/:userId", getUserById);
+
+router.get("/user", getAllUsers);
+
+router.put("/user/:userId", updateUser);
 
 module.exports = router;

@@ -1,6 +1,5 @@
 const { ZodiacSign } = require("../models");
 
-// Get all zodiac signs
 const getAllZodiacSigns = async (req, res) => {
   try {
     const zodiacSigns = await ZodiacSign.findAll();
@@ -10,7 +9,6 @@ const getAllZodiacSigns = async (req, res) => {
   }
 };
 
-// Get a specific zodiac sign
 const getZodiacByName = async (req, res) => {
   const { name } = req.params;
   try {

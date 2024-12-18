@@ -1,8 +1,13 @@
 const { Chat } = require("../models");
 
-// Create a new chat message (general, private, or group chat)
 const sendMessage = async (req, res) => {
   const { type, message, sender_id, recipient_id } = req.body;
+
+  if (!type || !message || !sender_id) {
+    return res
+      .status(400)
+      .send("Message type, content, and sender_id are required.");
+  }
 
   try {
     const chat = await Chat.create({
@@ -17,7 +22,6 @@ const sendMessage = async (req, res) => {
   }
 };
 
-// Get all messages for a user (general, group, private)
 const getMessages = async (req, res) => {
   const { userId } = req.params;
   try {
