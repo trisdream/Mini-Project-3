@@ -5,6 +5,7 @@ const getAllZodiacSigns = async (req, res) => {
     const zodiacSigns = await ZodiacSign.findAll();
     res.json(zodiacSigns);
   } catch (err) {
+    console.error(err);
     res.status(500).send("Error fetching zodiac signs");
   }
 };

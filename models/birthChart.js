@@ -1,7 +1,16 @@
-const { Sequelize, DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../dbConnect");
 
 const BirthChart = sequelize.define("BirthChart", {
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: "Users",
+      key: "id",
+    },
+  },
+
   birth_date: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -11,20 +20,12 @@ const BirthChart = sequelize.define("BirthChart", {
     allowNull: false,
   },
   latitude: {
-    type: DataTypes.DECIMAL(10, 6),
+    type: DataTypes.FLOAT,
     allowNull: false,
-    validate: {
-      min: -90,
-      max: 90,
-    },
   },
   longitude: {
-    type: DataTypes.DECIMAL(10, 6),
+    type: DataTypes.FLOAT,
     allowNull: false,
-    validate: {
-      min: -180,
-      max: 180,
-    },
   },
   sun_zodiac: {
     type: DataTypes.STRING,
@@ -67,14 +68,6 @@ const BirthChart = sequelize.define("BirthChart", {
     allowNull: true,
   },
   pluto_zodiac: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  north_node_zodiac: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  chiron_zodiac: {
     type: DataTypes.STRING,
     allowNull: true,
   },

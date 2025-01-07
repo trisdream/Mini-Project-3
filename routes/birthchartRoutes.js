@@ -1,12 +1,12 @@
 const express = require("express");
 const {
-  createBirthChart,
   getUserBirthChart,
+  getAllBirthCharts,
 } = require("../controllers/birthchartController");
 
 const router = express.Router();
 
-router.post("/birthcharts", createBirthChart);
+router.get("/birthcharts", getAllBirthCharts);
 
 router.get("/birthcharts/:userId", getUserBirthChart);
 

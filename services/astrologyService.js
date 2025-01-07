@@ -1,4 +1,5 @@
 const swisseph = require("swisseph");
+const { BirthChart } = require("../models");
 
 const zodiacSigns = [
   "Aries",
@@ -27,14 +28,31 @@ function getAscendant(date, latitude, longitude) {
     date.getDate(),
     date.getHours() + date.getMinutes() / 60
   );
-  const siderealTime = swisseph.swe_sidtime(jd);
 
   const ascendantData = swisseph.swe_houses(jd, latitude, longitude, "P");
-  const ascendantLongitude = ascendantData.cusp[0];
+  if (!ascendantData || typeof ascendantData.ascendant === "undefined") {
+    console.error("Error: Ascendant data is missing or malformed.");
+    return null;
+  }
+
+  const ascendantLongitude = ascendantData.ascendant;
   return getZodiacSign(ascendantLongitude);
 }
 
-function getPlanetaryPositions(date) {
+const planetMapping = {
+  sun: swisseph.SE_SUN,
+  moon: swisseph.SE_MOON,
+  mercury: swisseph.SE_MERCURY,
+  venus: swisseph.SE_VENUS,
+  mars: swisseph.SE_MARS,
+  jupiter: swisseph.SE_JUPITER,
+  saturn: swisseph.SE_SATURN,
+  uranus: swisseph.SE_URANUS,
+  neptune: swisseph.SE_NEPTUNE,
+  pluto: swisseph.SE_PLUTO,
+};
+
+async function getPlanetaryPositions(date) {
   const jd = swisseph.swe_julday(
     date.getFullYear(),
     date.getMonth() + 1,
@@ -42,25 +60,13 @@ function getPlanetaryPositions(date) {
     date.getHours() + date.getMinutes() / 60
   );
 
-  const planets = [
-    "sun",
-    "moon",
-    "mercury",
-    "venus",
-    "mars",
-    "jupiter",
-    "saturn",
-    "uranus",
-    "neptune",
-    "pluto",
-  ];
-
+  const planets = Object.keys(planetMapping);
   let planetPositions = {};
 
-  planets.forEach((planet) => {
-    const planetData = swisseph.swe_calc(
+  for (const planet of planets) {
+    const planetData = await swisseph.swe_calc(
       jd,
-      swisseph.SE_[planet.toUpperCase()],
+      planetMapping[planet],
       swisseph.SEFLG_SPEED
     );
     const longitude = planetData.longitude;
@@ -71,9 +77,59 @@ function getPlanetaryPositions(date) {
       zodiacSign: zodiacSign,
       distance: planetData.distance.toFixed(2),
     };
-  });
+  }
 
   return planetPositions;
 }
 
-module.exports = { getZodiacSign, getAscendant, getPlanetaryPositions };
+async function updatePlanetaryPositions(
+  user,
+  newBirthdate,
+  newBirthtime,
+  latitude,
+  longitude
+) {
+  const planetPositions = await getPlanetaryPositions(new Date(newBirthdate));
+  const ascendant = getAscendant(new Date(newBirthdate), latitude, longitude);
+
+  try {
+    let birthChart = await BirthChart.findOne({ where: { userId: user.id } });
+
+    if (!birthChart) {
+      console.log("No birth chart found. Creating a new one...");
+      birthChart = await BirthChart.create({
+        userId: user.id,
+        birth_date: newBirthdate,
+        birth_time: newBirthtime,
+        latitude: latitude,
+        longitude: longitude,
+      });
+    }
+
+    birthChart.sun_zodiac = planetPositions.sun.zodiacSign;
+    birthChart.moon_zodiac = planetPositions.moon.zodiacSign;
+    birthChart.ascendant_zodiac = ascendant;
+    birthChart.mercury_zodiac = planetPositions.mercury.zodiacSign;
+    birthChart.venus_zodiac = planetPositions.venus.zodiacSign;
+    birthChart.mars_zodiac = planetPositions.mars.zodiacSign;
+    birthChart.jupiter_zodiac = planetPositions.jupiter.zodiacSign;
+    birthChart.saturn_zodiac = planetPositions.saturn.zodiacSign;
+    birthChart.uranus_zodiac = planetPositions.uranus.zodiacSign;
+    birthChart.neptune_zodiac = planetPositions.neptune.zodiacSign;
+    birthChart.pluto_zodiac = planetPositions.pluto.zodiacSign;
+
+    await birthChart.save();
+    console.log(`Birth chart updated for user ${user.id}`);
+  } catch (error) {
+    console.error(
+      "Error updating birth chart for user " + user.id + ": " + error.message
+    );
+  }
+}
+
+module.exports = {
+  getZodiacSign,
+  getAscendant,
+  getPlanetaryPositions,
+  updatePlanetaryPositions,
+};

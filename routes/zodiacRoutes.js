@@ -6,8 +6,8 @@ const {
 
 const router = express.Router();
 
-router.get("/zodiac-signs", getAllZodiacSigns);
+router.get("/zodiacsigns", getAllZodiacSigns);
 
-router.get("/zodiac-signs/:name", getZodiacByName);
+router.get("/zodiacsigns/:name", getZodiacByName);
 
 module.exports = router;
